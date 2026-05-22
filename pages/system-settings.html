@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าระบบ - ระบบติดตามการส่งงานครู</title> 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  
+  <script src="../js/navbar.js"></script>
+  <script src="../js/footer.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/sidebar.js"></script>
+ </head>
+ <body class="bg-gray-50 md:pl-72">
+  <div class="loading-overlay" id="loadingOverlay">
+   <div class="spinner"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md" id="mainNav">
+   <div class="container mx-auto px-4">
+    <div class="flex gap-2 py-3" id="navButtons"></div>
+   </div>
+  </nav>
+
+  <!-- Main Content (flex-grow pushes footer down) -->
+  <main class="container mx-auto px-4 py-6 flex-grow">
+   <!-- System Settings Page -->
+   <div id="systemSettingsPage">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">ตั้งค่าระบบ</h2>
+    <div class="glass-card p-8 max-w-2xl mx-auto">
+     <h3 class="text-xl font-bold text-gray-800 mb-6">การตั้งค่าทั่วไป</h3>
+     <form id="systemSettingsForm">
+      <div class="mb-4">
+       <label for="systemTitle" class="block text-gray-700 font-semibold mb-2">ชื่อระบบ</label>
+       <input type="text" id="systemTitleInput" name="systemTitle" class="w-full px-4 py-2 border rounded-lg" required>
+      </div>
+      <div class="mb-4">
+       <label for="schoolName" class="block text-gray-700 font-semibold mb-2">ชื่อโรงเรียน</label>
+       <input type="text" id="schoolNameInput" name="schoolName" class="w-full px-4 py-2 border rounded-lg" required>
+      </div>
+      <div class="mb-4">
+       <label for="footerText" class="block text-gray-700 font-semibold mb-2">ข้อความส่วนท้าย</label>
+       <input type="text" id="footerTextForm" name="footerText" class="w-full px-4 py-2 border rounded-lg" required>
+      </div>
+      <button type="submit" class="btn-premium bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition">
+       <i class="fas fa-save mr-2"></i>บันทึกการตั้งค่า
+      </button>
+     </form>
+    </div>
+   </div>
+  </main>
+
+
+  <!-- Modals -->
+  <div id="modalContainer"></div>
+  <script src="js/system-settings.js"></script>
+ </body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการกลุ่มงาน - ระบบติดตามการส่งงานครู</title> 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  
+  <script src="../js/navbar.js"></script>
+  <script src="../js/footer.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/sidebar.js"></script>
+ </head>
+ <body class="bg-gray-50 md:pl-72">
+  <div class="loading-overlay" id="loadingOverlay">
+   <div class="spinner"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md" id="mainNav">
+   <div class="container mx-auto px-4">
+    <div class="flex gap-2 py-3" id="navButtons"></div>
+   </div>
+  </nav>
+
+  <!-- Main Content (flex-grow pushes footer down) -->
+  <main class="container mx-auto px-4 py-6 flex-grow">
+   <!-- Work Group Management Page -->
+   <div id="workGroupManagementPage">
+    <div class="flex justify-between items-center mb-6">
+     <h2 class="text-3xl font-bold text-gray-800">จัดการกลุ่มงาน</h2>
+     <button onclick="showAddWorkGroupModal()" class="btn-premium bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+      <i class="fas fa-plus mr-2"></i>เพิ่มกลุ่มงาน
+     </button>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">จำนวนกลุ่มงานทั้งหมด</p>
+        <p class="text-3xl font-bold text-gray-800" id="totalWorkGroups">0</p>
+       </div><i class="fas fa-layer-group text-4xl text-blue-500"></i>
+      </div>
+     </div>
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">มีหัวหน้ากลุ่ม</p>
+        <p class="text-3xl font-bold text-gray-800" id="workGroupsWithLeader">0</p>
+       </div><i class="fas fa-user-tie text-4xl text-purple-500"></i>
+      </div>
+     </div>
+    </div>
+    
+    <!-- Search Filter -->
+    <div class="glass-card p-6 mb-6">
+     <h3 class="text-lg font-bold mb-4 text-gray-800">ค้นหา</h3>
+     <div class="grid grid-cols-1">
+      <input type="text" id="searchWorkGroupInput" placeholder="ค้นหาชื่อกลุ่มงาน..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+     </div>
+    </div>
+    
+    <!-- Work Groups Table -->
+    <div class="glass-card overflow-hidden">
+     <div class="overflow-x-auto">
+      <table class="w-full">
+       <thead class="bg-gray-100">
+        <tr>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">รหัสกลุ่มงาน</th>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">ชื่อกลุ่มงาน</th>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">หัวหน้ากลุ่ม</th>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">รายละเอียด</th>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">สถานะ</th>
+         <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">การกระทำ</th>
+        </tr>
+       </thead>
+       <tbody id="workGroupsTableBody"></tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+  </main>
+
+
+  <!-- Modals -->
+  <div id="modalContainer"></div>
+  <script src="js/work-group-management.js"></script>
+ </body>
+</html>

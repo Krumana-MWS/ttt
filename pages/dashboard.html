@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แดชบอร์ด - ระบบติดตามการส่งงานครู</title> 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  
+  <script src="../js/navbar.js"></script>
+  <script src="../js/footer.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/sidebar.js"></script>
+ </head>
+ <body class="bg-gray-50 md:pl-72">
+  <div class="loading-overlay" id="loadingOverlay">
+   <div class="spinner"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md" id="mainNav">
+   <div class="container mx-auto px-4">
+    <div class="flex gap-2 py-3" id="navButtons"></div>
+   </div>
+  </nav>
+
+  <!-- Main Content (flex-grow pushes footer down) -->
+  <main class="container mx-auto px-4 py-6 flex-grow">
+   <!-- Dashboard Page -->
+   <div id="dashboardPage">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">แดชบอร์ดติดตามการส่งงาน</h2>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">งานทั้งหมด</p>
+        <p class="text-3xl font-bold text-gray-800" id="totalAssignments">0</p>
+       </div><i class="fas fa-tasks text-4xl text-blue-500"></i>
+      </div>
+     </div>
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">ส่งแล้ว</p>
+        <p class="text-3xl font-bold text-green-600" id="submittedCount">0</p>
+       </div><i class="fas fa-check-circle text-4xl text-green-500"></i>
+      </div>
+     </div>
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">ยังไม่ส่ง</p>
+        <p class="text-3xl font-bold text-red-600" id="notSubmittedCount">0</p>
+       </div><i class="fas fa-times-circle text-4xl text-red-500"></i>
+      </div>
+     </div>
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">รอตรวจสอบ</p>
+        <p class="text-3xl font-bold text-yellow-600" id="pendingCount">0</p>
+       </div><i class="fas fa-clock text-4xl text-yellow-500"></i>
+      </div>
+     </div>
+     <div class="glass-card p-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <p class="text-gray-500 text-sm">เกินกำหนด</p>
+        <p class="text-3xl font-bold text-orange-600" id="overdueCount">0</p>
+       </div><i class="fas fa-exclamation-triangle text-4xl text-orange-500"></i>
+      </div>
+     </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="glass-card p-6 mb-6">
+     <h3 class="text-lg font-bold mb-4 text-gray-800">ค้นหาและกรองข้อมูล</h3>
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <select id="filterAssignmentName" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+       <option value="">ทุกงาน</option>
+      </select>
+      <input type="text" id="searchInput" placeholder="ค้นหาชื่อครู" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+       <option value="">ทุกสถานะ</option>
+       <option value="ส่งแล้ว">ส่งแล้ว</option>
+       <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
+       <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+       <option value="เกินกำหนด">เกินกำหนด</option>
+       <option value="ส่งแก้ไข">ส่งแก้ไข</option>
+      </select>
+      <select id="filterDepartment" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+       <option value="">ทุกกลุ่มสาระฯ</option>
+      </select>
+      <select id="filterWorkGroup" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+       <option value="">ทุกกลุ่มงาน</option>
+      </select>
+      <input type="date" id="filterDueDate" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+     </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+     <!-- Chart -->
+     <div class="lg:col-span-2 glass-card p-6">
+      <h3 class="text-lg font-bold mb-4 text-gray-800">ภาพรวมสถานะการส่งงาน</h3>
+      <div class="relative h-72 md:h-80">
+       <canvas id="statusChart"></canvas>
+      </div>
+     </div>
+     
+     <!-- Table -->
+     <div class="lg:col-span-3 glass-card overflow-hidden">
+      <div class="overflow-x-auto">
+       <table class="w-full">
+        <thead class="bg-gray-100">
+         <tr>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">ชื่องาน</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">ผู้รับผิดชอบ</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กลุ่มสาระฯ</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กลุ่มงาน</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">สถานะ</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">วันที่ส่ง</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กำหนดส่ง</th>
+          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">การกระทำ</th>
+         </tr>
+        </thead>
+        <tbody id="submissionsTableBody"></tbody>
+       </table>
+      </div>
+     </div>
+    </div>
+
+    <!-- Department Chart -->
+    <div class="mt-6 glass-card p-6">
+     <h3 class="text-lg font-bold mb-4 text-gray-800">การส่งงานรายกลุ่มสาระฯ</h3>
+     <div class="relative h-96">
+      <canvas id="departmentChart"></canvas>
+     </div>
+    </div>
+   </div>
+  </main>
+
+
+  <!-- Modals -->
+  <div id="modalContainer"></div>
+  <script src="js/dashboard.js"></script>
+ </body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โปรไฟล์ของฉัน - ระบบติดตามการส่งงานครู</title> 
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/navbar.js"></script>
+  <script src="../js/footer.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/sidebar.js"></script>
+ </head>
+ <body class="bg-gray-50 md:pl-72">
+  <div class="loading-overlay" id="loadingOverlay">
+   <div class="spinner"></div>
+  </div><!-- Navigation -->
+  <nav class="bg-white shadow-md" id="mainNav">
+   <div class="container mx-auto px-4">
+    <div class="flex gap-2 py-3" id="navButtons"></div>
+   </div>
+  </nav><!-- Main Content -->
+  <main class="container mx-auto px-4 py-6 flex-grow">
+   <div id="myProfilePage">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">โปรไฟล์ของฉัน</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Profile Info -->
+      <div class="md:col-span-1">
+       <div class="glass-card p-8 text-center border-t-4 border-blue-500">
+        <div class="relative w-32 h-32 mx-auto mb-6 group">
+         <img id="profileAvatar" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar" class="rounded-full w-full h-full object-cover border-4 border-blue-100 shadow-md">
+         <label for="profilePictureInput" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-65 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-inner">
+          <i class="fas fa-camera text-2xl"></i>
+         </label>
+         <input type="file" id="profilePictureInput" class="hidden" accept="image/png, image/jpeg, image/gif">
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1" id="profileName">ชื่อผู้ใช้</h3>
+        <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-4" id="profileRole">บทบาท</span>
+        <div class="mt-4 text-sm text-gray-600 space-y-1.5 border-t pt-4 text-left">
+         <p class="flex items-center gap-2"><i class="fas fa-id-card text-gray-400 w-5"></i> <span id="profileUserId">รหัสผู้ใช้: -</span></p>
+         <p class="flex items-center gap-2" id="profileEmailContainer"><i class="fas fa-envelope text-gray-400 w-5"></i> <span id="profileEmail">อีเมล: -</span></p>
+        </div>
+       </div>
+      </div><!-- Change Password -->
+      <div class="md:col-span-2">
+       <div class="glass-card p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+         <i class="fas fa-key text-yellow-500"></i> เปลี่ยนรหัสผ่านความปลอดภัย
+        </h3>
+        <form id="changePasswordForm" class="space-y-4">
+         <div>
+          <label for="currentPassword" class="block text-gray-700 font-semibold mb-1 text-sm">รหัสผ่านปัจจุบัน</label>
+          <input type="password" id="currentPassword" name="currentPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required>
+         </div>
+         <div>
+          <label for="newPassword" class="block text-gray-700 font-semibold mb-1 text-sm">รหัสผ่านใหม่</label>
+          <input type="password" id="newPassword" name="newPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required minlength="6">
+          <p class="text-xs text-gray-400 mt-1">รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร</p>
+         </div>
+         <div>
+          <label for="confirmNewPassword" class="block text-gray-700 font-semibold mb-1 text-sm">ยืนยันรหัสผ่านใหม่</label>
+          <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required>
+         </div>
+         <div class="pt-2">
+          <button type="submit" class="btn-premium bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg transition shadow-md flex items-center gap-2">
+           <i class="fas fa-save"></i> บันทึกการเปลี่ยนแปลง
+          </button>
+         </div>
+        </form>
+       </div>
+      </div>
+    </div>
+   </div>
+  </main>
+  <script src="js/my-profile.js"></script>
+ </body>
+</html>

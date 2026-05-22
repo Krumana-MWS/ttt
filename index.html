@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามการส่งงานครู</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+
+    <script src="js/common.js"></script>
+</head>
+
+<body class="bg-gray-50">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div> <!-- Header -->
+    <header class="glass-card mt-4 mx-4 md:mx-auto max-w-7xl relative z-10 border-0 !rounded-2xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 drop-shadow-sm"
+                        id="systemTitle">ระบบติดตามการส่งงานครู</h1>
+                    <p class="text-sm text-slate-500 font-medium tracking-wide mt-1" id="schoolName">
+                        โรงเรียนบ้านสร้างสื่อ</p>
+                </div>
+                <div class="flex items-center gap-6" id="userInfo">
+                    <!-- Notification Bell -->
+                    <div class="relative">
+                        <button onclick="toggleNotificationDropdown()"
+                            class="text-slate-500 hover:text-indigo-600 transition">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="notification-badge hidden"></span>
+                        </button>
+                        <div id="notificationDropdown" class="text-gray-800 mt-2">
+                            <div class="p-4 flex justify-between items-center border-b">
+                                <h4 class="font-bold">การแจ้งเตือน</h4>
+                                <button onclick="markAllNotificationsAsRead()"
+                                    class="text-sm text-indigo-600 hover:underline">อ่านทั้งหมด</button>
+                            </div>
+                            <div id="notificationList" class="divide-y">
+                                <!-- Notification items will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <p class="font-semibold text-slate-800" id="currentUserName">ผู้ใช้งาน</p>
+                            <p class="text-xs text-indigo-600 font-medium" id="currentUserRole">บทบาท</p>
+                        </div><button onclick="logout()"
+                            class="btn-premium bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>ออกจากระบบ </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="glass-card mt-2 hidden mx-4 md:mx-auto max-w-7xl" id="mainNav">
+        <div class="container mx-auto px-4">
+            <div class="flex gap-2 py-3" id="navButtons"></div>
+        </div>
+    </nav><!-- Main Content (flex-grow pushes footer down) -->
+    <main class="container mx-auto px-4 py-6 flex-grow">
+        <div id="loginPage" class="min-h-full flex items-center justify-center">
+            <div class="max-w-4xl w-full mx-auto glass-card overflow-hidden grid md:grid-cols-2">
+                <!-- Branding Column -->
+                <div
+                    class="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-12 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-black opacity-10"></div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <i class="fas fa-layer-group text-6xl mb-6 drop-shadow-lg"></i>
+                        <h2 class="text-3xl font-bold text-center tracking-wide" id="loginSystemTitle-branding">
+                            ระบบติดตามการส่งงานครู</h2>
+                        <p class="text-center mt-3 opacity-90 font-light" id="loginSchoolName-branding">
+                            โรงเรียนบ้านสร้างสื่อ</p>
+                    </div>
+                </div><!-- Form Column -->
+                <div class="p-8 md:p-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ</h2>
+                    <p class="text-gray-600 mb-8">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+                    <form id="loginForm">
+                        <div class="mb-5 relative"><label class="block text-gray-700 font-semibold mb-2">อีเมล
+                                (Email)</label>
+                            <div class="relative"><i
+                                    class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="email" name="userEmail"
+                                    class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required placeholder="เช่น admin@example.com">
+                            </div>
+                        </div>
+                        <div class="mb-6 relative"><label
+                                class="block text-gray-700 font-semibold mb-2">รหัสผ่าน</label>
+                            <div class="relative"><i
+                                    class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="password" name="password"
+                                    class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required placeholder="••••••••">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="w-full btn-premium bg-indigo-600 text-white font-bold py-3 rounded-lg"> เข้าสู่ระบบ
+                        </button>
+                    </form>
+                    <div class="mt-8 p-4 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-lg">
+                        <p class="text-sm font-semibold text-indigo-800 mb-2">ข้อมูลสำหรับทดสอบระบบ:</p>
+                        <ul class="text-xs text-gray-700 list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">Admin:</span> admin@example.com / admin123</li>
+                            <li><span class="font-semibold">หัวหน้า:</span> head.math@example.com / t1234 </li>
+                            <li><span class="font-semibold">ครู:</span> T01@gmail.com / t1234 </li>
+                        </ul>
+                        <script>
+                            // Login Page specific logic
+                            $('#loginForm').validate({
+                                submitHandler: async function (form, event) {
+                                    event.preventDefault();
+                                    showLoading();
+                                    const userEmail = form.userEmail.value.trim().toLowerCase();
+                                    const password = form.password.value;
+
+                                    try {
+                                        const hashedPassword = await hashPassword(password);
+
+                                        setTimeout(() => {
+                                            let user = systemData.users.find(u => u.email && u.email.toLowerCase() === userEmail && u.password === hashedPassword);
+
+                                            // Legacy plaintext fallback & graceful upgrade
+                                            if (!user) {
+                                                const legacyUser = systemData.users.find(u => u.email && u.email.toLowerCase() === userEmail && u.password === password);
+                                                if (legacyUser) {
+                                                    user = legacyUser;
+                                                    // Upgrade to hashed password instantly
+                                                    user.password = hashedPassword;
+                                                    saveSystemData(systemData);
+                                                }
+                                            }
+
+                                            if (user) {
+                                                setCurrentUser(user);
+
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'เข้าสู่ระบบสำเร็จ',
+                                                    text: `ยินดีต้อนรับ ${user.name}`,
+                                                    timer: 1500,
+                                                    showConfirmButton: false
+                                                }).then(() => {
+                                                    if (user.role === 'teacher') {
+                                                        window.location.href = 'pages/my-tasks.html';
+                                                    } else {
+                                                        window.location.href = 'pages/dashboard.html';
+                                                    }
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'เข้าสู่ระบบไม่สำเร็จ',
+                                                    text: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+                                                });
+                                            }
+                                            hideLoading();
+                                        }, 500);
+                                    } catch (err) {
+                                        console.error('Password hashing failed', err);
+                                        hideLoading();
+                                        Swal.fire('Error', 'ระบบเกิดข้อผิดพลาดในการตรวจสอบรหัสผ่าน', 'error');
+                                    }
+                                }
+                            });
+
+                            // Initialize
+                            document.addEventListener('DOMContentLoaded', () => {
+                                // If user is already logged in, redirect them to their page
+                                const user = getCurrentUser();
+                                if (user) {
+                                    window.location.href = user.role === 'teacher' ? 'pages/my-tasks.html' : 'pages/dashboard.html';
+                                    return;
+                                }
+                                document.getElementById('loginPage').classList.remove('hidden');
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div><!-- Dashboard Page -->
+        <!-- Other pages are now in separate files -->
+        <footer class="mt-auto py-6 relative z-10 opacity-70 hover:opacity-100 transition-opacity">
+            <div class="container mx-auto px-4">
+                <p class="text-center text-slate-600 font-medium tracking-wide" id="footerText">© 2025
+                    โรงเรียนบ้านสร้างสื่อ</p>
+            </div>
+        </footer><!-- Modals -->
+        <div id="modalContainer"></div>
+</body>
+
+</html>
