@@ -17,7 +17,9 @@ let statusChart = null;
         function updateDashboardStats() {
             let submissions = systemData.submissions;
             
-            if (currentUser.role === 'head') {
+            if (currentUser.role === 'teacher') {
+                submissions = submissions.filter(s => s.teacherId === currentUser.teacherId);
+            } else if (currentUser.role === 'head') {
                 const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
                 if (headTeacher) {
                     const departmentTeachers = systemData.teachers
@@ -91,28 +93,44 @@ let statusChart = null;
                 const workGroupName = workGroup ? workGroup.name : 'ไม่ระบุ';
 
                 const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
+                row.className = 'table-row-animate border-b border-gray-50 text-sm';
                 
                 // Show view files button if there are files
                 let filesBtn = '';
-                if (s.files && s.files.length > 0) {
-                    filesBtn = `<button onclick="viewFile('${s.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="ดูไฟล์ที่ส่ง"><i class="fas fa-eye"></i></button>`;
+                if ((s.files && s.files.length > 0) || s.submissionText) {
+                    filesBtn = `<button onclick="viewFile('${s.id}')" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors mr-2" title="ดูรายละเอียด"><i class="fas fa-eye"></i></button>`;
+                }
+
+                let actionBtns = '';
+                if (s.status === 'รอตรวจสอบ' && currentUser.role !== 'teacher') {
+                    actionBtns = `
+                        <button onclick="approveSubmission('${s.id}')" class="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition-colors mr-2" title="ยืนยันการรับงาน"><i class="fas fa-check"></i></button>
+                        <button onclick="rejectSubmission('${s.id}')" class="text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 p-2 rounded-lg transition-colors" title="ส่งกลับแก้ไข"><i class="fas fa-times"></i></button>
+                    `;
                 }
 
                 row.innerHTML = `
-                    <td class="px-6 py-4">${s.assignment.name}</td>
-                    <td class="px-6 py-4">${s.teacher.name}</td>
-                    <td class="px-6 py-4">${s.teacher.department}</td>
-                    <td class="px-6 py-4">${workGroupName}</td>
-                    <td class="px-6 py-4">${getStatusBadge(displayStatus)}</td>
-                    <td class="px-6 py-4">${formatThaiDate(s.submissionDate)}</td>
-                    <td class="px-6 py-4">${formatThaiDate(s.assignment.dueDate)}</td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-4">
+                        <div class="font-semibold text-gray-800">${s.assignment.name}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i class="far fa-calendar-alt mr-1"></i>ครบกำหนด: ${formatThaiDate(s.assignment.dueDate)}</div>
+                    </td>
+                    <td class="px-4 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                                ${s.teacher.name.charAt(0)}
+                            </div>
+                            <span class="text-gray-700 font-medium">${s.teacher.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            ${s.teacher.department}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4">${getStatusBadge(displayStatus)}</td>
+                    <td class="px-4 py-4 text-center whitespace-nowrap">
                         ${filesBtn}
-                        ${s.status === 'รอตรวจสอบ' ? `
-                            <button onclick="approveSubmission('${s.id}')" class="text-green-600 hover:text-green-800 mr-2" title="ยืนยันการรับงาน"><i class="fas fa-check"></i></button>
-                            <button onclick="rejectSubmission('${s.id}')" class="text-red-600 hover:text-red-800" title="ส่งกลับแก้ไข"><i class="fas fa-times"></i></button>
-                        ` : ''}
+                        ${actionBtns}
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -145,29 +163,31 @@ let statusChart = null;
                     label: 'สถานะงาน',
                     data: [submitted, pending, notSubmitted, overdue, rejected],
                     backgroundColor: [
-                        '#10b981', // badge-green
-                        '#f59e0b', // badge-yellow
-                        '#ef4444', // badge-red
-                        '#f97316', // badge-orange
-                        '#3b82f6'  // badge-blue
+                        '#10b981', // emerald-500
+                        '#fbbf24', // amber-400
+                        '#f43f5e', // rose-500
+                        '#c026d3', // fuchsia-600
+                        '#6366f1'  // indigo-500
                     ],
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                    hoverOffset: 4
+                    borderWidth: 0,
+                    hoverOffset: 8
                 }]
             };
 
             const options = {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '75%', // Make it a sleek doughnut chart
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'right',
                         labels: {
                             font: {
                                 family: "'Sarabun', sans-serif",
-                                size: 14
-                            }
+                                size: 13
+                            },
+                            usePointStyle: true,
+                            padding: 20
                         }
                     }
                 }
@@ -175,10 +195,11 @@ let statusChart = null;
 
             if (statusChart) {
                 statusChart.data = data;
+                statusChart.options = options;
                 statusChart.update();
             } else {
                 statusChart = new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: data,
                     options: options
                 });
@@ -186,39 +207,73 @@ let statusChart = null;
         }
 
         function renderDepartmentChart(submissionsData) {
+            if (currentUser.role === 'teacher') {
+                const col = document.getElementById('departmentChartCol');
+                if(col) col.style.display = 'none';
+                return;
+            }
+
             const ctx = document.getElementById('departmentChart').getContext('2d');
-            const departments = systemData.departments.filter(d => d.status === 'ใช้งาน');
-            const departmentLabels = departments.map(d => d.name);
+            
+            let labels = [];
+            let submittedData = [];
+            let notSubmittedData = [];
 
-            const submittedData = [];
-            const notSubmittedData = [];
+            if (currentUser.role === 'head') {
+                // For Heads, show stats of individual teachers in their department
+                const titleEl = document.getElementById('departmentChartTitle');
+                if (titleEl) {
+                    titleEl.innerHTML = '<div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fas fa-users"></i></div>สถิติการส่งงานรายบุคคล (ในกลุ่มสาระฯ)';
+                }
 
-            departmentLabels.forEach(deptName => {
-                const teacherIdsInDept = systemData.teachers
-                    .filter(t => t.department === deptName)
-                    .map(t => t.id);
+                const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
+                if (headTeacher) {
+                    const deptTeachers = systemData.teachers.filter(t => t.department === headTeacher.department && t.status === 'ใช้งาน');
+                    labels = deptTeachers.map(t => t.name);
+                    
+                    deptTeachers.forEach(teacher => {
+                        const teacherSubmissions = submissionsData.filter(s => s.teacherId === teacher.id);
+                        const submittedCount = teacherSubmissions.filter(s => s.status === 'ส่งแล้ว').length;
+                        const notSubmittedCount = teacherSubmissions.length - submittedCount;
+                        
+                        submittedData.push(submittedCount);
+                        notSubmittedData.push(notSubmittedCount);
+                    });
+                }
+            } else {
+                // For Admin, show stats of departments
+                const departments = systemData.departments.filter(d => d.status === 'ใช้งาน');
+                labels = departments.map(d => d.name);
 
-                const submissionsInDept = submissionsData.filter(s => teacherIdsInDept.includes(s.teacherId));
+                labels.forEach(deptName => {
+                    const teacherIdsInDept = systemData.teachers
+                        .filter(t => t.department === deptName)
+                        .map(t => t.id);
 
-                const submittedCount = submissionsInDept.filter(s => s.status === 'ส่งแล้ว').length;
-                const notSubmittedCount = submissionsInDept.length - submittedCount;
+                    const submissionsInDept = submissionsData.filter(s => teacherIdsInDept.includes(s.teacherId));
 
-                submittedData.push(submittedCount);
-                notSubmittedData.push(notSubmittedCount);
-            });
+                    const submittedCount = submissionsInDept.filter(s => s.status === 'ส่งแล้ว').length;
+                    const notSubmittedCount = submissionsInDept.length - submittedCount;
+
+                    submittedData.push(submittedCount);
+                    notSubmittedData.push(notSubmittedCount);
+                });
+            }
 
             const data = {
-                labels: departmentLabels,
+                labels: labels,
                 datasets: [
                     {
                         label: 'ส่งแล้ว',
                         data: submittedData,
                         backgroundColor: '#10b981',
+                        borderRadius: 4,
                     },
                     {
-                        label: 'ยังไม่ส่ง',
+                        label: 'ยังไม่ส่ง (รวมถึงรอดำเนินการ)',
                         data: notSubmittedData,
-                        backgroundColor: '#ef4444',
+                        backgroundColor: '#f43f5e',
+                        borderRadius: 4,
                     }
                 ]
             };
@@ -229,21 +284,28 @@ let statusChart = null;
                 scales: {
                     x: {
                         stacked: true,
+                        grid: { display: false }
                     },
                     y: {
                         stacked: true,
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: { borderDash: [4, 4] }
                     }
                 },
                 plugins: {
                     legend: {
                         position: 'top',
+                        labels: {
+                            font: { family: "'Sarabun', sans-serif" },
+                            usePointStyle: true
+                        }
                     }
                 }
             };
 
             if (departmentChart) {
                 departmentChart.data = data;
+                departmentChart.options = options;
                 departmentChart.update();
             } else {
                 departmentChart = new Chart(ctx, { type: 'bar', data, options });
@@ -257,7 +319,9 @@ let statusChart = null;
                 return { ...s, assignment, teacher };
             });
 
-            if (currentUser.role === 'head') {
+            if (currentUser.role === 'teacher') {
+                submissions = submissions.filter(s => s.teacherId === currentUser.teacherId);
+            } else if (currentUser.role === 'head') {
                 const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
                 if (headTeacher) {
                     submissions = submissions.filter(s => s.teacher && s.teacher.department === headTeacher.department);
@@ -268,6 +332,17 @@ let statusChart = null;
         }
 
         function setupDashboardFilters() {
+            // Hide filters based on role
+            if (currentUser.role === 'teacher') {
+                const searchArea = document.getElementById('filterSearchArea');
+                const deptArea = document.getElementById('filterDepartmentArea');
+                if (searchArea) searchArea.style.display = 'none';
+                if (deptArea) deptArea.style.display = 'none';
+            } else if (currentUser.role === 'head') {
+                const deptArea = document.getElementById('filterDepartmentArea');
+                if (deptArea) deptArea.style.display = 'none';
+            }
+
             const searchInput = document.getElementById('searchInput');
             const filterAssignmentName = document.getElementById('filterAssignmentName');
             const filterDepartment = document.getElementById('filterDepartment');
@@ -282,7 +357,9 @@ let statusChart = null;
                     return { ...s, assignment, teacher };
                 });
 
-                if (currentUser.role === 'head') {
+                if (currentUser.role === 'teacher') {
+                    submissions = submissions.filter(s => s.teacherId === currentUser.teacherId);
+                } else if (currentUser.role === 'head') {
                     const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
                     if (headTeacher) {
                         submissions = submissions.filter(s => s.teacher && s.teacher.department === headTeacher.department);
@@ -332,18 +409,32 @@ let statusChart = null;
 
         function viewFile(submissionId) {
             const submission = systemData.submissions.find(s => s.id === submissionId);
-            if (submission && submission.files && submission.files.length > 0) {
-                const fileListHtml = submission.files.map(file => {
-                    // Check if file contains url
-                    if (file.url) {
-                        return `<p class="text-lg"><a href="${file.url}" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-file-alt mr-2"></i>${file.name} (คลิกเพื่อเปิดดู)</a></p>`;
-                    } else {
-                        return `<p class="text-lg"><i class="fas fa-file-alt text-gray-500 mr-2"></i>${file.name}</p>`;
-                    }
-                }).join('');
+            if (submission && ((submission.files && submission.files.length > 0) || submission.submissionText)) {
+                let fileListHtml = '';
+                if (submission.files && submission.files.length > 0) {
+                    fileListHtml = submission.files.map(file => {
+                        if (file.url) {
+                            return `<p class="text-lg"><a href="${file.url}" target="_blank" class="text-indigo-600 hover:underline"><i class="fas fa-file-alt mr-2"></i>${file.name} (คลิกเพื่อเปิดดู)</a></p>`;
+                        } else {
+                            return `<p class="text-lg"><i class="fas fa-file-alt text-gray-500 mr-2"></i>${file.name}</p>`;
+                        }
+                    }).join('');
+                }
+                
+                let textHtml = '';
+                if (submission.submissionText) {
+                    textHtml = `
+                        <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <p class="text-sm font-semibold text-blue-800 mb-1"><i class="fas fa-align-left mr-1"></i>รายละเอียดที่ส่ง:</p>
+                            <p class="text-sm text-blue-700 leading-relaxed whitespace-pre-wrap">${submission.submissionText}</p>
+                        </div>
+                    `;
+                }
+
                 Swal.fire({
-                    title: 'ไฟล์ที่ส่ง',
+                    title: 'รายละเอียดการส่งงาน',
                     html: `<div class="space-y-2 text-left">${fileListHtml}</div>
+                           ${textHtml}
                            <p class="text-sm text-gray-600 mt-2 text-left">วันที่ส่ง: ${formatThaiDate(submission.submissionDate)}</p>`,
                     icon: 'info'
                 });
@@ -440,7 +531,7 @@ let statusChart = null;
             }
 
             // Check access rights for admin/head pages
-            const restrictedPages = ['dashboard.html', 'assignment-management.html'];
+            const restrictedPages = ['assignment-management.html'];
             const pageName = window.location.pathname.split('/').pop();
             if (restrictedPages.includes(pageName) && currentUser.role === 'teacher') {
                  window.location.href = 'my-tasks.html'; // Redirect teacher away

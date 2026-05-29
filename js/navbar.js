@@ -37,15 +37,6 @@ function initNavbar() {
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="text-right">
-                                <p class="font-semibold text-white" id="currentUserName">ผู้ใช้งาน</p>
-                                <p class="text-xs opacity-90 text-white" id="currentUserRole">บทบาท</p>
-                            </div>
-                            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition focus:outline-none">
-                                <i class="fas fa-sign-out-alt mr-2"></i>ออกจากระบบ
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>

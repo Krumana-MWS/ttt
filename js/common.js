@@ -323,6 +323,86 @@ function markAllNotificationsAsRead() {
     updateNotificationUI();
 }
 
+// Real Email Notification via GAS
+async function sendEmailNotification(teacherId, subject, body) {
+    const teacher = systemData.teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.email) return;
+
+    const gasUrl = getGasUrl();
+    if (gasUrl) {
+        try {
+            // Call GAS Web App to send real email
+            await fetch(gasUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'sendEmail',
+                    to: teacher.email,
+                    subject: subject,
+                    body: body
+                })
+            });
+            console.log(`[REAL EMAIL SENT to ${teacher.email}]`);
+        } catch (err) {
+            console.error("Failed to send real email:", err);
+        }
+    } else {
+        console.warn(`[SIMULATED EMAIL to ${teacher.email}] (GAS URL is missing)`);
+    }
+
+    // If the email is to the current user, show a toast to make it visible in demo
+    if (currentUser && currentUser.id === teacherId) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: `(คุณได้รับอีเมลจริง) ${subject}`,
+            text: 'ส่งไปยัง ' + teacher.email,
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true
+        });
+    }
+}
+
+// Check for approaching deadlines and send email reminders (1 day before)
+function checkApproachingDeadlines() {
+    let hasChanges = false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    systemData.submissions.forEach(sub => {
+        if (sub.status === 'ยังไม่ส่ง' && !sub.reminderSent) {
+            const assignment = systemData.assignments.find(a => a.id === sub.assignmentId);
+            if (assignment) {
+                const dueDate = new Date(assignment.dueDate);
+                dueDate.setHours(0, 0, 0, 0);
+                
+                const timeDiff = dueDate.getTime() - today.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                // If deadline is today or tomorrow (<= 1 day) and not passed
+                if (daysDiff >= 0 && daysDiff <= 1) {
+                    sendEmailNotification(
+                        sub.teacherId,
+                        `แจ้งเตือนใกล้ถึงกำหนดส่งงาน: ${assignment.name}`,
+                        `เรียนคุณครู,\n\nงาน "${assignment.name}" กำหนดส่งวันที่ ${formatThaiDate(assignment.dueDate)} (เหลือเวลาอีก ${daysDiff === 0 ? 'วันนีั' : daysDiff + ' วัน'})\nกรุณาเข้าสู่ระบบเพื่อส่งงาน\n\nขอบคุณครับ`
+                    );
+                    sub.reminderSent = true;
+                    hasChanges = true;
+                }
+            }
+        }
+    });
+
+    if (hasChanges) {
+        saveSystemData(systemData);
+    }
+}
+
 // Upload file to Google Drive via Apps Script Web App
 async function uploadFileToGAS(fileName, base64Data, mimeType) {
     const gasUrl = getGasUrl();
@@ -470,6 +550,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+        
+        checkApproachingDeadlines();
     } else {
         if (userInfoEl) userInfoEl.classList.add('hidden');
     }

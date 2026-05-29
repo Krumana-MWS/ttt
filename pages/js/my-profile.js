@@ -21,12 +21,6 @@
                 document.getElementById('profileEmailContainer').classList.add('hidden');
             }
 
-            // Restore user avatar from saved state
-            if (currentUser.avatar) {
-                document.getElementById('profileAvatar').src = currentUser.avatar;
-            } else {
-                document.getElementById('profileAvatar').src = `https://i.pravatar.cc/150?u=${currentUser.id}`;
-            }
 
             document.getElementById('changePasswordForm').reset();
         }
@@ -93,87 +87,7 @@
             }
         });
 
-        // Profile Avatar Upload and Drive Integration
-        document.getElementById('profilePictureInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
 
-            // Validate image file type
-            const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif'];
-            const extension = file.name.split('.').pop().toLowerCase();
-            if (!allowedExtensions.includes(extension)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ข้อผิดพลาด',
-                    text: 'กรุณาเลือกเฉพาะไฟล์รูปภาพหลัก (PNG, JPG, JPEG, GIF)',
-                    confirmButtonColor: '#ef4444'
-                });
-                return;
-            }
-
-            showLoading();
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                try {
-                    const base64Data = reader.result.split(',')[1];
-                    const gasUrl = getGasUrl();
-                    let finalAvatarUrl;
-
-                    if (gasUrl) {
-                        // Real upload to Google Drive using App Script API
-                        const uploadedFile = await uploadFileToGAS(`avatar_${currentUser.id}_${Date.now()}.${extension}`, base64Data, file.type);
-                        finalAvatarUrl = `https://drive.google.com/uc?export=view&id=${uploadedFile.id}`;
-                    } else {
-                        // Offline mock fallback: use raw Base64 data-uri locally
-                        finalAvatarUrl = reader.result;
-                    }
-
-                    // Save to user objects
-                    const dbUser = systemData.users.find(u => u.id === currentUser.id);
-                    if (dbUser) {
-                        dbUser.avatar = finalAvatarUrl;
-                    }
-                    currentUser.avatar = finalAvatarUrl;
-                    
-                    setCurrentUser(currentUser);
-                    saveSystemData(systemData);
-
-                    // Update UI image
-                    document.getElementById('profileAvatar').src = finalAvatarUrl;
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'อัปเดตรูปโปรไฟล์สำเร็จ',
-                        text: gasUrl ? 'บันทึกและอัปโหลดรูปภาพลง Google Drive เรียบร้อย' : 'บันทึกรูปภาพเรียบร้อย (โหมดออฟไลน์)',
-                        confirmButtonColor: '#2563eb'
-                    });
-
-                } catch (err) {
-                    console.error("Avatar Upload Error: ", err);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'อัปเดตรูปโปรไฟล์ล้มเหลว',
-                        text: err.message || 'ไม่สามารถอัปโหลดไฟล์รูปภาพได้',
-                        confirmButtonColor: '#ef4444'
-                    });
-                } finally {
-                    hideLoading();
-                }
-            };
-            
-            reader.onerror = (error) => {
-                console.error("FileReader Error: ", error);
-                hideLoading();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ผิดพลาด',
-                    text: 'เกิดข้อผิดพลาดในการอ่านไฟล์รูปภาพ',
-                    confirmButtonColor: '#ef4444'
-                });
-            };
-        });
 
         // Background Google Apps Script sync callback
         window.onSystemDataSynced = function(syncedData) {

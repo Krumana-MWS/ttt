@@ -28,7 +28,9 @@
             if (typeof checkDueDateNotifications === 'function') checkDueDateNotifications();
             updateMyTasksSummary();
             const activeFilter = document.querySelector('#myTasksFilter button.bg-blue-600') ? document.querySelector('#myTasksFilter button.bg-blue-600').getAttribute('data-status') : 'all';
-            renderMyTasks(activeFilter);
+            const searchInput = document.getElementById('taskSearchInput');
+            const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            renderMyTasks(activeFilter, searchQuery);
         }
 
         function updateMyTasksSummary() {
@@ -50,7 +52,7 @@
             document.getElementById('myPendingTasks').textContent = pending;
         }
 
-        function renderMyTasks(filterStatus = 'all') {
+        function renderMyTasks(filterStatus = 'all', searchQuery = '') {
             const tasksList = document.getElementById('myTasksList');
             const teacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
 
@@ -74,6 +76,14 @@
                 mySubmissions = mySubmissions.filter(s => s.status === 'ส่งแล้ว');
             }
 
+            // Search logic
+            if (searchQuery) {
+                mySubmissions = mySubmissions.filter(s => {
+                    const a = systemData.assignments.find(a => a.id === s.assignmentId);
+                    return a && a.name.toLowerCase().includes(searchQuery);
+                });
+            }
+
             tasksList.innerHTML = '';
 
             if (mySubmissions.length === 0) {
@@ -94,6 +104,11 @@
                 const workGroup = systemData.workGroups.find(wg => wg.id === assignment.workGroupId);
                 const workGroupName = workGroup ? workGroup.name : 'ไม่ระบุ';
 
+                const allSubmissionsForAssignment = systemData.submissions.filter(s => s.assignmentId === assignment.id);
+                const totalAssigned = allSubmissionsForAssignment.length;
+                const totalSubmitted = allSubmissionsForAssignment.filter(s => s.status === 'ส่งแล้ว').length;
+                const totalNotSubmitted = totalAssigned - totalSubmitted;
+
                 const card = document.createElement('div');
                 card.className = 'glass-card hover:shadow-md transition duration-200 p-6 flex flex-col justify-between';
                 card.innerHTML = `
@@ -102,6 +117,10 @@
                             <div>
                                 <h3 class="text-xl font-bold text-gray-800">${assignment.name}</h3>
                                 <p class="text-sm text-blue-600 font-semibold mt-1"><i class="fas fa-tag mr-1"></i>${workGroupName}</p>
+                                <div class="mt-2 flex gap-2">
+                                    <span class="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-md"><i class="fas fa-check-circle mr-1"></i>ส่งแล้ว ${totalSubmitted}</span>
+                                    <span class="text-xs font-medium bg-rose-100 text-rose-700 px-2 py-1 rounded-md"><i class="fas fa-times-circle mr-1"></i>ยังไม่ส่ง ${totalNotSubmitted}</span>
+                                </div>
                             </div>
                             ${getStatusBadge(displayStatus)}
                         </div>
@@ -145,6 +164,13 @@
                                 <p class="text-sm text-red-700 leading-relaxed">${submission.feedback}</p>
                             </div>
                         ` : ''}
+
+                        ${submission.submissionText ? `
+                            <div class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                <p class="text-sm font-semibold text-blue-800 mb-1"><i class="fas fa-align-left mr-1"></i>รายละเอียดที่ส่ง:</p>
+                                <p class="text-sm text-blue-700 leading-relaxed whitespace-pre-wrap">${submission.submissionText}</p>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="mt-4">
@@ -177,6 +203,16 @@
                 allowedTypesHtml = `<p class="text-sm text-gray-500 mt-2">ประเภทไฟล์ที่อนุญาต: ${allowedTypes.join(', ').toUpperCase()}</p>`;
             }
 
+            let textSubmissionHtml = '';
+            if (assignment.allowTextSubmission) {
+                textSubmissionHtml = `
+                    <div class="mt-4 text-left">
+                        <label class="block text-gray-700 font-semibold mb-2">รายละเอียดเพิ่มเติม ${assignment.requireTextSubmission ? '<span class="text-red-500">*</span>' : '<span class="text-gray-400 font-normal">(ถ้ามี)</span>'}</label>
+                        <textarea id="taskTextDetails" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" rows="3" placeholder="พิมพ์ข้อความ..."></textarea>
+                    </div>
+                `;
+            }
+
             Swal.fire({
                 title: 'ส่งงาน',
                 html: `
@@ -186,6 +222,7 @@
                         <p class="text-sm text-gray-500 mt-1">แนบไฟล์ได้สูงสุด ${assignment.maxFiles || 1} ไฟล์</p>
                     </div>
                     <input type="file" id="taskFileInput" class="w-full p-2 border rounded-lg focus:ring focus:ring-blue-200" multiple>
+                    ${textSubmissionHtml}
                 `,
                 showCancelButton: true,
                 confirmButtonText: 'อัปโหลดและส่งงาน',
@@ -194,6 +231,12 @@
                 preConfirm: () => {
                     const fileInput = document.getElementById('taskFileInput');
                     const selectedFiles = Array.from(fileInput.files);
+                    const taskTextDetails = assignment.allowTextSubmission ? document.getElementById('taskTextDetails').value.trim() : '';
+
+                    if (assignment.requireTextSubmission && !taskTextDetails) {
+                        Swal.showValidationMessage('กรุณาพิมพ์รายละเอียดเพิ่มเติม');
+                        return false;
+                    }
 
                     if (selectedFiles.length === 0) {
                         Swal.showValidationMessage('กรุณาเลือกไฟล์อย่างน้อย 1 ไฟล์');
@@ -215,11 +258,12 @@
                             }
                         }
                     }
-                    return selectedFiles;
+                    return { selectedFiles, taskTextDetails };
                 }
             }).then(async (result) => {
                 if (result.isConfirmed && result.value) {
-                    const selectedFiles = result.value;
+                    const selectedFiles = result.value.selectedFiles;
+                    const submissionText = result.value.taskTextDetails;
                     showLoading();
 
                     try {
@@ -248,8 +292,9 @@
 
                         // Update local system data submission object
                         submission.status = 'รอตรวจสอบ';
-                        submission.submissionDate = new Date().toISOString().split('T')[0];
+                        submission.submissionDate = new Date().toISOString();
                         submission.files = uploadedFiles;
+                        submission.submissionText = submissionText;
                         submission.feedback = ''; // Clear old feedback comments
 
                         // Save updated local data cache and sync back to Google Sheets via GAS sync action
@@ -313,9 +358,20 @@
                     target.classList.remove('bg-white', 'text-gray-700', 'shadow-sm', 'hover:bg-gray-100');
                     target.classList.add('bg-blue-600', 'text-white', 'shadow-md');
 
-                    renderMyTasks(target.getAttribute('data-status'));
+                    const searchInput = document.getElementById('taskSearchInput');
+                    const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                    renderMyTasks(target.getAttribute('data-status'), searchQuery);
                 });
             });
+
+            // Setup search input
+            const searchInput = document.getElementById('taskSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const activeFilter = document.querySelector('#myTasksFilter button.bg-blue-600') ? document.querySelector('#myTasksFilter button.bg-blue-600').getAttribute('data-status') : 'all';
+                    renderMyTasks(activeFilter, searchInput.value.toLowerCase().trim());
+                });
+            }
 
             loadMyTasks();
         });

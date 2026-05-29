@@ -449,11 +449,16 @@ function refreshAuditModal() {
             }).join('<br>');
         }
 
+        let textHtml = '';
+        if (sub && sub.submissionText) {
+            textHtml = `<div class="mt-2 text-left p-2 bg-blue-50 border border-blue-100 rounded-md text-[11px] text-blue-800"><p class="font-semibold mb-0.5"><i class="fas fa-align-left mr-1"></i>รายละเอียด:</p><p class="whitespace-pre-wrap leading-tight text-blue-700">${sub.submissionText}</p></div>`;
+        }
+
         // Action controls
-        let actionControls = '';
+        let actionControls = `<div class="text-center mb-1 flex flex-col gap-1">${filesHtml}${textHtml}</div>`;
         if (sub && sub.status === 'รอตรวจสอบ') {
-            actionControls = `
-                <div class="flex items-center justify-center gap-1.5">
+            actionControls += `
+                <div class="flex items-center justify-center gap-1.5 mt-1">
                     <button onclick="approveSubmissionFromModal('${sub.id}')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-[11px] font-bold transition border border-emerald-100 hover:border-emerald-600 shadow-sm" title="อนุมัติงานเข้าสู่ระบบ">
                         <i class="fas fa-check text-[9px]"></i> อนุมัติ
                     </button>
@@ -462,8 +467,6 @@ function refreshAuditModal() {
                     </button>
                 </div>
             `;
-        } else {
-            actionControls = `<div class="text-center">${filesHtml}</div>`;
         }
 
         // Feedback Text Block

@@ -370,11 +370,16 @@ function refreshAuditModal() {
             }).join('<br>');
         }
 
+        let textHtml = '';
+        if (sub && sub.submissionText) {
+            textHtml = `<div class="mt-2 text-left p-2.5 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800"><p class="font-semibold mb-1"><i class="fas fa-align-left mr-1"></i>รายละเอียด:</p><p class="whitespace-pre-wrap leading-relaxed text-blue-700">${sub.submissionText}</p></div>`;
+        }
+
         // Action Audit Buttons
-        let actionControls = '';
+        let actionControls = `<div class="text-center mb-1 flex flex-col gap-1">${filesHtml}${textHtml}</div>`;
         if (sub.status === 'รอตรวจสอบ') {
-            actionControls = `
-                <div class="flex items-center justify-center gap-2">
+            actionControls += `
+                <div class="flex items-center justify-center gap-2 mt-1">
                     <button onclick="approveSubmissionFromModal('${sub.id}')" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-xs font-bold transition border border-emerald-100 hover:border-emerald-600 shadow-sm" title="อนุมัติงานเข้าสู่ระบบ">
                         <i class="fas fa-check"></i> อนุมัติ
                     </button>
@@ -383,8 +388,6 @@ function refreshAuditModal() {
                     </button>
                 </div>
             `;
-        } else {
-            actionControls = `<div class="text-center">${filesHtml}</div>`;
         }
 
         // Feedback / comments section if exists

@@ -24,52 +24,9 @@
 <body class="bg-gray-50">
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-    </div> <!-- Header -->
-    <header class="glass-card mt-4 mx-4 md:mx-auto max-w-7xl relative z-10 border-0 !rounded-2xl">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 drop-shadow-sm"
-                        id="systemTitle">ระบบติดตามการส่งงานครู</h1>
-                    <p class="text-sm text-slate-500 font-medium tracking-wide mt-1" id="schoolName">
-                        โรงเรียนบ้านสร้างสื่อ</p>
-                </div>
-                <div class="flex items-center gap-6" id="userInfo">
-                    <!-- Notification Bell -->
-                    <div class="relative">
-                        <button onclick="toggleNotificationDropdown()"
-                            class="text-slate-500 hover:text-indigo-600 transition">
-                            <i class="fas fa-bell text-xl"></i>
-                            <span id="notificationBadge" class="notification-badge hidden"></span>
-                        </button>
-                        <div id="notificationDropdown" class="text-gray-800 mt-2">
-                            <div class="p-4 flex justify-between items-center border-b">
-                                <h4 class="font-bold">การแจ้งเตือน</h4>
-                                <button onclick="markAllNotificationsAsRead()"
-                                    class="text-sm text-indigo-600 hover:underline">อ่านทั้งหมด</button>
-                            </div>
-                            <div id="notificationList" class="divide-y">
-                                <!-- Notification items will be injected here -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-right">
-                            <p class="font-semibold text-slate-800" id="currentUserName">ผู้ใช้งาน</p>
-                            <p class="text-xs text-indigo-600 font-medium" id="currentUserRole">บทบาท</p>
-                        </div><button onclick="logout()"
-                            class="btn-premium bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 px-4 py-2 rounded-lg transition">
-                            <i class="fas fa-sign-out-alt mr-2"></i>ออกจากระบบ </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    <nav class="glass-card mt-2 hidden mx-4 md:mx-auto max-w-7xl" id="mainNav">
-        <div class="container mx-auto px-4">
-            <div class="flex gap-2 py-3" id="navButtons"></div>
-        </div>
-    </nav><!-- Main Content (flex-grow pushes footer down) -->
+    </div>
+    
+    <!-- Main Content (flex-grow pushes footer down) -->
     <main class="container mx-auto px-4 py-6 flex-grow">
         <div id="loginPage" class="min-h-full flex items-center justify-center">
             <div class="max-w-4xl w-full mx-auto glass-card overflow-hidden grid md:grid-cols-2">

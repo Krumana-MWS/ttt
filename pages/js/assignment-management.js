@@ -77,7 +77,7 @@
                     <td class="px-6 py-4">
                         <button onclick="viewAssignment('${assignment.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="ดูรายละเอียด"><i class="fas fa-eye"></i></button>                        
                         ${assignment.attachment ? `<button onclick="downloadAttachment('${assignment.id}')" class="text-sky-600 hover:text-sky-800 mr-2" title="ดาวน์โหลดไฟล์แนบ"><i class="fas fa-download"></i></button>` : ''}
-                        ${currentUser.role === 'admin' || (currentUser.role === 'head' && workGroup && workGroup.leaderId === currentUser.teacherId) ? `
+                        ${currentUser.role === 'admin' || (currentUser.role === 'head' && (assignment.createdBy === (currentUser.teacherId || currentUser.id) || (workGroup && workGroup.leaderId === currentUser.teacherId))) ? `
                             <button onclick="showDuplicateAssignmentModal('${assignment.id}')" class="text-purple-600 hover:text-purple-800 mr-2" title="คัดลอก"><i class="fas fa-copy"></i></button>
                             <button onclick="editAssignment('${assignment.id}')" class="text-green-600 hover:text-green-800 mr-2" title="แก้ไข"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteAssignment('${assignment.id}')" class="text-red-600 hover:text-red-800" title="ลบ"><i class="fas fa-trash"></i></button>                            
@@ -130,7 +130,9 @@
                     assignedTeachers: value.selectedTeachers,
                     createdBy: currentUser.teacherId || currentUser.id,
                     fileRequirements: value.fileRequirements,
-                    attachment: value.attachment
+                    attachment: value.attachment,
+                    allowTextSubmission: value.allowTextSubmission || false,
+                    requireTextSubmission: value.requireTextSubmission || false
                 };
                 systemData.assignments.push(newAssignment);
 
@@ -147,7 +149,12 @@
                     });
                 });
                 
-                value.selectedTeachers.forEach(teacherId => createNotification(teacherId, `คุณได้รับมอบหมายงานใหม่: ${newAssignment.name}`, 'new_assignment', 'my-tasks.html'));
+                value.selectedTeachers.forEach(teacherId => {
+                    createNotification(teacherId, `คุณได้รับมอบหมายงานใหม่: ${newAssignment.name}`, 'new_assignment', 'my-tasks.html');
+                    if (typeof sendEmailNotification === 'function') {
+                        sendEmailNotification(teacherId, `ได้รับมอบหมายงานใหม่: ${newAssignment.name}`, `เรียนคุณครู,\n\nคุณได้รับมอบหมายงานใหม่ "${newAssignment.name}" กำหนดส่งวันที่ ${formatThaiDate(newAssignment.dueDate)}\n\nกรุณาเข้าสู่ระบบเพื่อตรวจสอบรายละเอียดและส่งงาน\n\nขอบคุณครับ`);
+                    }
+                });
 
                 saveSystemData(systemData);
                 loadAssignmentManagement();
@@ -159,16 +166,11 @@
         function showAddAssignmentModal() {
             let availableWorkGroups = systemData.workGroups.filter(wg => wg.status === 'ใช้งาน');
             
-            // หัวหน้ากลุ่มสามารถสร้างงานได้เฉพาะกลุ่มที่ตนเป็นหัวหน้า
-            if (currentUser.role === 'head') {
-                availableWorkGroups = availableWorkGroups.filter(wg => wg.leaderId === currentUser.teacherId);
-            }
-
             if (availableWorkGroups.length === 0) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'ไม่สามารถสร้างงานได้',
-                    text: currentUser.role === 'head' ? 'คุณไม่ได้เป็นหัวหน้ากลุ่มงานใด ๆ' : 'ไม่มีกลุ่มงานที่ใช้งานได้'
+                    text: 'ไม่มีกลุ่มงานที่ใช้งานได้'
                 });
                 return;
             }
@@ -177,7 +179,14 @@
                 `<option value="${wg.id}">${wg.name}</option>`
             ).join('');
 
-            const teachers = systemData.teachers;
+            let teachers = systemData.teachers;
+            if (currentUser.role === 'head') {
+                const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
+                if (headTeacher) {
+                    teachers = teachers.filter(t => t.department === headTeacher.department);
+                }
+            }
+
             const teacherCheckboxes = teachers.map(t => 
                 `<label class="flex items-center mb-2">
                     <input type="checkbox" name="teachers" value="${t.id}" class="mr-2">
@@ -232,6 +241,19 @@
                             </div>
                         </div>
                         <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">ตัวเลือกการส่งงานเพิ่มเติม</label>
+                            <label class="flex items-center text-sm text-gray-700 mb-1 cursor-pointer">
+                                <input type="checkbox" id="allowTextSubmission" onchange="document.getElementById('requireTextContainer').style.display = this.checked ? 'block' : 'none'" class="mr-2">
+                                อนุญาตให้ผู้ส่งงานพิมพ์รายละเอียดเพิ่มเติมได้
+                            </label>
+                            <div id="requireTextContainer" style="display: none;" class="pl-6 mt-1">
+                                <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" id="requireTextSubmission" class="mr-2">
+                                    บังคับให้ต้องพิมพ์รายละเอียด (ห้ามเว้นว่าง)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2">มอบหมายให้</label>
                             <div class="max-h-48 overflow-y-auto border rounded-lg p-3">
                                 ${teacherCheckboxes}
@@ -253,6 +275,8 @@
                     const allowedTypes = Array.from(form.querySelectorAll('input[name="allowedTypes"]:checked')).map(cb => cb.value);
                     const maxFiles = parseInt(form.maxFiles.value, 10) || 1;
                     const attachmentFile = form.attachment.files[0];
+                    const allowTextSubmission = document.getElementById('allowTextSubmission').checked;
+                    const requireTextSubmission = allowTextSubmission ? document.getElementById('requireTextSubmission').checked : false;
                     
                     // Generate new assignment ID
                     const lastIdNum = systemData.assignments.reduce((maxId, a) => {
@@ -274,7 +298,9 @@
                         assignmentId: newAssignmentId, 
                         assignmentName, workGroupId, dueDate, description, selectedTeachers, 
                         fileRequirements: { allowedTypes, maxFiles },
-                        attachment: attachmentFile ? { name: attachmentFile.name } : null
+                        attachment: attachmentFile ? { name: attachmentFile.name } : null,
+                        allowTextSubmission,
+                        requireTextSubmission
                     };
                 }
             }).then((result) => {
@@ -321,7 +347,14 @@
 
             const fileReqs = assignment.fileRequirements || { allowedTypes: [], maxFiles: 1 };
 
-            const teachers = systemData.teachers;
+            let teachers = systemData.teachers;
+            if (currentUser.role === 'head') {
+                const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
+                if (headTeacher) {
+                    teachers = teachers.filter(t => t.department === headTeacher.department || assignment.assignedTeachers.includes(t.id));
+                }
+            }
+
             const teacherCheckboxes = teachers.map(t => 
                 `<label class="flex items-center mb-2">
                     <input type="checkbox" name="teachers" value="${t.id}" ${assignment.assignedTeachers.includes(t.id) ? 'checked' : ''} class="mr-2">
@@ -373,6 +406,19 @@
                             </div>
                         </div>
                         <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">ตัวเลือกการส่งงานเพิ่มเติม</label>
+                            <label class="flex items-center text-sm text-gray-700 mb-1 cursor-pointer">
+                                <input type="checkbox" id="allowTextSubmission" onchange="document.getElementById('requireTextContainerEdit').style.display = this.checked ? 'block' : 'none'" ${assignment.allowTextSubmission ? 'checked' : ''} class="mr-2">
+                                อนุญาตให้ผู้ส่งงานพิมพ์รายละเอียดเพิ่มเติมได้
+                            </label>
+                            <div id="requireTextContainerEdit" style="display: ${assignment.allowTextSubmission ? 'block' : 'none'};" class="pl-6 mt-1">
+                                <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" id="requireTextSubmission" ${assignment.requireTextSubmission ? 'checked' : ''} class="mr-2">
+                                    บังคับให้ต้องพิมพ์รายละเอียด (ห้ามเว้นว่าง)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2">มอบหมายให้</label>
                             <div class="max-h-48 overflow-y-auto border rounded-lg p-3">
                                 ${teacherCheckboxes}
@@ -390,6 +436,8 @@
                     const allowedTypes = Array.from(form.querySelectorAll('input[name="allowedTypes"]:checked')).map(cb => cb.value);
                     const maxFiles = parseInt(form.maxFiles.value, 10) || 1;
                     const attachmentFile = form.attachment.files[0];
+                    const allowTextSubmission = document.getElementById('allowTextSubmission').checked;
+                    const requireTextSubmission = allowTextSubmission ? document.getElementById('requireTextSubmission').checked : false;
 
                     if (selectedTeachers.length === 0) {
                         Swal.showValidationMessage('กรุณาเลือกครูอย่างน้อย 1 คน');
@@ -402,7 +450,9 @@
                         description: form.description.value,
                         selectedTeachers: selectedTeachers,
                         fileRequirements: { allowedTypes, maxFiles },
-                        attachment: attachmentFile ? { name: attachmentFile.name } : assignment.attachment
+                        attachment: attachmentFile ? { name: attachmentFile.name } : assignment.attachment,
+                        allowTextSubmission,
+                        requireTextSubmission
                     };
                 }
             }).then((result) => {
@@ -414,6 +464,8 @@
                         assignment.description = result.value.description;
                         assignment.fileRequirements = result.value.fileRequirements;
                         assignment.attachment = result.value.attachment;
+                        assignment.allowTextSubmission = result.value.allowTextSubmission;
+                        assignment.requireTextSubmission = result.value.requireTextSubmission;
 
                         const removedTeachers = assignment.assignedTeachers.filter(tid => !result.value.selectedTeachers.includes(tid));
                         removedTeachers.forEach(tid => {
@@ -436,7 +488,12 @@
                             });
                         });
                         
-                        newTeachers.forEach(tid => createNotification(tid, `คุณได้รับมอบหมายงานใหม่: ${assignment.name}`, 'new_assignment', 'my-tasks.html'));
+                        newTeachers.forEach(tid => {
+                            createNotification(tid, `คุณได้รับมอบหมายงานใหม่: ${assignment.name}`, 'new_assignment', 'my-tasks.html');
+                            if (typeof sendEmailNotification === 'function') {
+                                sendEmailNotification(tid, `ได้รับมอบหมายงานใหม่: ${assignment.name}`, `เรียนคุณครู,\n\nคุณได้รับมอบหมายงานใหม่ "${assignment.name}" กำหนดส่งวันที่ ${formatThaiDate(assignment.dueDate)}\n\nกรุณาเข้าสู่ระบบเพื่อตรวจสอบรายละเอียดและส่งงาน\n\nขอบคุณครับ`);
+                            }
+                        });
 
                         assignment.assignedTeachers = result.value.selectedTeachers;
                         saveSystemData(systemData);
@@ -455,14 +512,18 @@
             const fileReqs = originalAssignment.fileRequirements || { allowedTypes: [], maxFiles: 1 };
 
             let availableWorkGroups = systemData.workGroups.filter(wg => wg.status === 'ใช้งาน');
-            if (currentUser.role === 'head') {
-                availableWorkGroups = availableWorkGroups.filter(wg => wg.leaderId === currentUser.teacherId);
-            }
             const workGroupOptions = availableWorkGroups.map(wg => 
                 `<option value="${wg.id}" ${wg.id === originalAssignment.workGroupId ? 'selected' : ''}>${wg.name}</option>`
             ).join('');
 
-            const teachers = systemData.teachers;
+            let teachers = systemData.teachers;
+            if (currentUser.role === 'head') {
+                const headTeacher = systemData.teachers.find(t => t.id === currentUser.teacherId);
+                if (headTeacher) {
+                    teachers = teachers.filter(t => t.department === headTeacher.department || originalAssignment.assignedTeachers.includes(t.id));
+                }
+            }
+
             const teacherCheckboxes = teachers.map(t => 
                 `<label class="flex items-center mb-2">
                     <input type="checkbox" name="teachers" value="${t.id}" ${originalAssignment.assignedTeachers.includes(t.id) ? 'checked' : ''} class="mr-2">
@@ -510,6 +571,19 @@
                             </div>
                         </div>
                         <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">ตัวเลือกการส่งงานเพิ่มเติม</label>
+                            <label class="flex items-center text-sm text-gray-700 mb-1 cursor-pointer">
+                                <input type="checkbox" id="allowTextSubmission" onchange="document.getElementById('requireTextContainerDup').style.display = this.checked ? 'block' : 'none'" ${originalAssignment.allowTextSubmission ? 'checked' : ''} class="mr-2">
+                                อนุญาตให้ผู้ส่งงานพิมพ์รายละเอียดเพิ่มเติมได้
+                            </label>
+                            <div id="requireTextContainerDup" style="display: ${originalAssignment.allowTextSubmission ? 'block' : 'none'};" class="pl-6 mt-1">
+                                <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" id="requireTextSubmission" ${originalAssignment.requireTextSubmission ? 'checked' : ''} class="mr-2">
+                                    บังคับให้ต้องพิมพ์รายละเอียด (ห้ามเว้นว่าง)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2">มอบหมายให้</label>
                             <div class="max-h-48 overflow-y-auto border rounded-lg p-3">${teacherCheckboxes}</div>
                         </div>
@@ -528,6 +602,8 @@
                     const selectedTeachers = Array.from(form.querySelectorAll('input[name="teachers"]:checked')).map(cb => cb.value);
                     const allowedTypes = Array.from(form.querySelectorAll('input[name="allowedTypes"]:checked')).map(cb => cb.value);
                     const maxFiles = parseInt(form.maxFiles.value, 10) || 1;
+                    const allowTextSubmission = document.getElementById('allowTextSubmission').checked;
+                    const requireTextSubmission = allowTextSubmission ? document.getElementById('requireTextSubmission').checked : false;
 
                     // Generate new assignment ID
                     const lastIdNum = systemData.assignments.reduce((maxId, a) => {
@@ -549,7 +625,9 @@
                         assignmentId: newAssignmentId,
                         assignmentName, workGroupId, dueDate, description, selectedTeachers, 
                         fileRequirements: { allowedTypes, maxFiles },
-                        attachment: originalAssignment.attachment
+                        attachment: originalAssignment.attachment,
+                        allowTextSubmission,
+                        requireTextSubmission
                     };
                 }
             }).then((result) => {

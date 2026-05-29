@@ -10,151 +10,241 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Google Fonts: Sarabun -->
+  <!-- Google Fonts: Sarabun & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   
   <script src="../js/navbar.js"></script>
   <script src="../js/footer.js"></script>
   <script src="../js/common.js"></script>
   <script src="../js/sidebar.js"></script>
+
+  <style>
+      /* Additional Animations for Dashboard */
+      .hover-scale { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+      .hover-scale:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.15); }
+      
+      .table-row-animate { transition: all 0.2s ease-in-out; }
+      .table-row-animate:hover { background-color: rgba(243, 244, 246, 0.8); transform: scale(1.01); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-radius: 0.5rem; z-index: 10; position: relative;}
+  </style>
  </head>
- <body class="bg-gray-50 md:pl-72">
+ <body class="bg-gray-50 md:pl-72 text-gray-800 font-['Sarabun']">
   <div class="loading-overlay" id="loadingOverlay">
    <div class="spinner"></div>
   </div>
 
   <!-- Navigation -->
-  <nav class="bg-white shadow-md" id="mainNav">
+  <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-100" id="mainNav">
    <div class="container mx-auto px-4">
     <div class="flex gap-2 py-3" id="navButtons"></div>
    </div>
   </nav>
 
-  <!-- Main Content (flex-grow pushes footer down) -->
-  <main class="container mx-auto px-4 py-6 flex-grow">
-   <!-- Dashboard Page -->
-   <div id="dashboardPage">
-    <h2 class="text-3xl font-bold mb-6 text-gray-800">แดชบอร์ดติดตามการส่งงาน</h2>
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8 flex-grow">
+   <div id="dashboardPage" class="max-w-7xl mx-auto">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 drop-shadow-sm font-['Outfit'] tracking-tight">Dashboard Overview</h2>
+            <p class="text-gray-500 mt-1">ภาพรวมการติดตามการส่งงานของบุคลากร</p>
+        </div>
+        <div class="text-sm text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
+            <i class="fas fa-calendar-alt text-indigo-500"></i> <span id="currentDateDisplay"></span>
+        </div>
+    </div>
     
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-     <div class="glass-card p-6">
-      <div class="flex items-center justify-between">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+     <!-- Card 1 -->
+     <div class="hover-scale bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/30 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
+      <div class="flex items-center justify-between relative z-10">
        <div>
-        <p class="text-gray-500 text-sm">งานทั้งหมด</p>
-        <p class="text-3xl font-bold text-gray-800" id="totalAssignments">0</p>
-       </div><i class="fas fa-tasks text-4xl text-blue-500"></i>
+        <p class="text-blue-100 text-sm font-medium mb-1">งานทั้งหมด</p>
+        <p class="text-4xl font-bold font-['Outfit']" id="totalAssignments">0</p>
+       </div>
+       <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+           <i class="fas fa-layer-group text-2xl text-white"></i>
+       </div>
       </div>
      </div>
-     <div class="glass-card p-6">
-      <div class="flex items-center justify-between">
+
+     <!-- Card 2 -->
+     <div class="hover-scale bg-gradient-to-br from-emerald-400 to-green-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/30 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
+      <div class="flex items-center justify-between relative z-10">
        <div>
-        <p class="text-gray-500 text-sm">ส่งแล้ว</p>
-        <p class="text-3xl font-bold text-green-600" id="submittedCount">0</p>
-       </div><i class="fas fa-check-circle text-4xl text-green-500"></i>
+        <p class="text-emerald-100 text-sm font-medium mb-1">ส่งแล้ว</p>
+        <p class="text-4xl font-bold font-['Outfit']" id="submittedCount">0</p>
+       </div>
+       <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+           <i class="fas fa-check-circle text-2xl text-white"></i>
+       </div>
       </div>
      </div>
-     <div class="glass-card p-6">
-      <div class="flex items-center justify-between">
+
+     <!-- Card 3 -->
+     <div class="hover-scale bg-gradient-to-br from-rose-400 to-red-600 rounded-2xl p-6 text-white shadow-lg shadow-rose-500/30 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
+      <div class="flex items-center justify-between relative z-10">
        <div>
-        <p class="text-gray-500 text-sm">ยังไม่ส่ง</p>
-        <p class="text-3xl font-bold text-red-600" id="notSubmittedCount">0</p>
-       </div><i class="fas fa-times-circle text-4xl text-red-500"></i>
+        <p class="text-rose-100 text-sm font-medium mb-1">ยังไม่ส่ง</p>
+        <p class="text-4xl font-bold font-['Outfit']" id="notSubmittedCount">0</p>
+       </div>
+       <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+           <i class="fas fa-times-circle text-2xl text-white"></i>
+       </div>
       </div>
      </div>
-     <div class="glass-card p-6">
-      <div class="flex items-center justify-between">
+
+     <!-- Card 4 -->
+     <div class="hover-scale bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-6 text-white shadow-lg shadow-amber-500/30 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
+      <div class="flex items-center justify-between relative z-10">
        <div>
-        <p class="text-gray-500 text-sm">รอตรวจสอบ</p>
-        <p class="text-3xl font-bold text-yellow-600" id="pendingCount">0</p>
-       </div><i class="fas fa-clock text-4xl text-yellow-500"></i>
+        <p class="text-amber-100 text-sm font-medium mb-1">รอตรวจสอบ</p>
+        <p class="text-4xl font-bold font-['Outfit']" id="pendingCount">0</p>
+       </div>
+       <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+           <i class="fas fa-clock text-2xl text-white"></i>
+       </div>
       </div>
      </div>
-     <div class="glass-card p-6">
-      <div class="flex items-center justify-between">
+
+     <!-- Card 5 -->
+     <div class="hover-scale bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg shadow-fuchsia-500/30 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
+      <div class="flex items-center justify-between relative z-10">
        <div>
-        <p class="text-gray-500 text-sm">เกินกำหนด</p>
-        <p class="text-3xl font-bold text-orange-600" id="overdueCount">0</p>
-       </div><i class="fas fa-exclamation-triangle text-4xl text-orange-500"></i>
+        <p class="text-fuchsia-100 text-sm font-medium mb-1">เกินกำหนด</p>
+        <p class="text-4xl font-bold font-['Outfit']" id="overdueCount">0</p>
+       </div>
+       <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+           <i class="fas fa-exclamation-triangle text-2xl text-white"></i>
+       </div>
       </div>
      </div>
     </div>
 
-    <!-- Filters -->
-    <div class="glass-card p-6 mb-6">
-     <h3 class="text-lg font-bold mb-4 text-gray-800">ค้นหาและกรองข้อมูล</h3>
-     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <select id="filterAssignmentName" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-       <option value="">ทุกงาน</option>
-      </select>
-      <input type="text" id="searchInput" placeholder="ค้นหาชื่อครู" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-       <option value="">ทุกสถานะ</option>
-       <option value="ส่งแล้ว">ส่งแล้ว</option>
-       <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
-       <option value="รอตรวจสอบ">รอตรวจสอบ</option>
-       <option value="เกินกำหนด">เกินกำหนด</option>
-       <option value="ส่งแก้ไข">ส่งแก้ไข</option>
-      </select>
-      <select id="filterDepartment" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-       <option value="">ทุกกลุ่มสาระฯ</option>
-      </select>
-      <select id="filterWorkGroup" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-       <option value="">ทุกกลุ่มงาน</option>
-      </select>
-      <input type="date" id="filterDueDate" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-     </div>
-    </div>
-
-    <!-- Data Table -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-     <!-- Chart -->
-     <div class="lg:col-span-2 glass-card p-6">
-      <h3 class="text-lg font-bold mb-4 text-gray-800">ภาพรวมสถานะการส่งงาน</h3>
-      <div class="relative h-72 md:h-80">
-       <canvas id="statusChart"></canvas>
-      </div>
+    <!-- Filters Area -->
+    <div class="glass-card p-6 mb-8 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl shadow-sm">
+     <div class="flex items-center gap-2 mb-5">
+         <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fas fa-filter"></i></div>
+         <h3 class="text-lg font-bold text-gray-800">ค้นหาและกรองข้อมูล</h3>
      </div>
      
-     <!-- Table -->
-     <div class="lg:col-span-3 glass-card overflow-hidden">
-      <div class="overflow-x-auto">
-       <table class="w-full">
-        <thead class="bg-gray-100">
-         <tr>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">ชื่องาน</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">ผู้รับผิดชอบ</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กลุ่มสาระฯ</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กลุ่มงาน</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">สถานะ</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">วันที่ส่ง</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">กำหนดส่ง</th>
-          <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">การกระทำ</th>
-         </tr>
-        </thead>
-        <tbody id="submissionsTableBody"></tbody>
-       </table>
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="relative">
+          <select id="filterAssignmentName" class="w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm cursor-pointer">
+           <option value="">ทุกงาน</option>
+          </select>
+          <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+      </div>
+      
+      <div class="relative" id="filterSearchArea">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="searchInput" placeholder="ค้นหาชื่อครู..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm">
+      </div>
+      
+      <div class="relative">
+          <select id="filterStatus" class="w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm cursor-pointer">
+           <option value="">ทุกสถานะ</option>
+           <option value="ส่งแล้ว">ส่งแล้ว</option>
+           <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
+           <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+           <option value="เกินกำหนด">เกินกำหนด</option>
+           <option value="ส่งแก้ไข">ส่งแก้ไข</option>
+          </select>
+          <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+      </div>
+      
+      <div class="relative" id="filterDepartmentArea">
+          <select id="filterDepartment" class="w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm cursor-pointer">
+           <option value="">ทุกกลุ่มสาระฯ</option>
+          </select>
+          <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+      </div>
+      
+      <div class="relative">
+          <select id="filterWorkGroup" class="w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm cursor-pointer">
+           <option value="">ทุกกลุ่มงาน</option>
+          </select>
+          <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
+      </div>
+      
+      <div class="relative">
+          <input type="date" id="filterDueDate" class="w-full pl-4 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow text-gray-700 shadow-sm cursor-pointer">
       </div>
      </div>
     </div>
 
-    <!-- Department Chart -->
-    <div class="mt-6 glass-card p-6">
-     <h3 class="text-lg font-bold mb-4 text-gray-800">การส่งงานรายกลุ่มสาระฯ</h3>
-     <div class="relative h-96">
-      <canvas id="departmentChart"></canvas>
+    <!-- Data Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+     <!-- Chart Column -->
+     <div class="lg:col-span-1 space-y-8">
+         <div class="glass-card p-6 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl shadow-sm">
+          <h3 class="text-lg font-bold mb-6 text-gray-800 flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center"><i class="fas fa-chart-pie"></i></div>
+              สถานะภาพรวม
+          </h3>
+          <div class="relative h-64 flex justify-center items-center">
+           <canvas id="statusChart"></canvas>
+          </div>
+         </div>
+     </div>
+     
+     <!-- Department/Teacher Chart -->
+     <div class="lg:col-span-2 glass-card p-6 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl shadow-sm" id="departmentChartCol">
+      <h3 class="text-lg font-bold mb-6 text-gray-800 flex items-center gap-2" id="departmentChartTitle">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fas fa-chart-bar"></i></div>
+          สถิติการส่งงานรายกลุ่มสาระฯ
+      </h3>
+      <div class="relative h-64">
+       <canvas id="departmentChart"></canvas>
+      </div>
      </div>
     </div>
+
+    <!-- Table Section -->
+    <div class="mt-8 glass-card rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl shadow-sm overflow-hidden flex flex-col">
+     <div class="p-6 border-b border-gray-100/80 bg-white/40 flex justify-between items-center">
+         <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+             <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fas fa-list-alt"></i></div>
+             รายการส่งงานล่าสุด
+         </h3>
+     </div>
+     <div class="overflow-x-auto p-4 flex-grow">
+      <table class="w-full border-collapse">
+       <thead>
+        <tr class="text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-b-2 border-gray-100">
+         <th class="px-4 py-3 pb-4">ชื่องาน</th>
+         <th class="px-4 py-3 pb-4">ผู้รับผิดชอบ</th>
+         <th class="px-4 py-3 pb-4">กลุ่มสาระฯ</th>
+         <th class="px-4 py-3 pb-4">สถานะ</th>
+         <th class="px-4 py-3 pb-4 text-center">จัดการ</th>
+        </tr>
+       </thead>
+       <tbody id="submissionsTableBody" class="divide-y divide-gray-50">
+           <!-- Rows injected by JS -->
+       </tbody>
+      </table>
+     </div>
+    </div>
+
    </div>
   </main>
-
 
   <!-- Modals -->
   <div id="modalContainer"></div>
   <script src="js/dashboard.js"></script>
+  <script>
+      // Set current date in header
+      const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('th-TH', dateOpts);
+  </script>
  </body>
 </html>

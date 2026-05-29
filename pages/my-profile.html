@@ -29,55 +29,100 @@
     <div class="flex gap-2 py-3" id="navButtons"></div>
    </div>
   </nav><!-- Main Content -->
-  <main class="container mx-auto px-4 py-6 flex-grow">
-   <div id="myProfilePage">
-    <h2 class="text-3xl font-bold mb-6 text-gray-800">โปรไฟล์ของฉัน</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Profile Info -->
-      <div class="md:col-span-1">
-       <div class="glass-card p-8 text-center border-t-4 border-blue-500">
-        <div class="relative w-32 h-32 mx-auto mb-6 group">
-         <img id="profileAvatar" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar" class="rounded-full w-full h-full object-cover border-4 border-blue-100 shadow-md">
-         <label for="profilePictureInput" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-65 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-inner">
-          <i class="fas fa-camera text-2xl"></i>
-         </label>
-         <input type="file" id="profilePictureInput" class="hidden" accept="image/png, image/jpeg, image/gif">
+  <main class="container mx-auto px-4 py-8 flex-grow">
+   <div id="myProfilePage" class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8 relative rounded-3xl overflow-hidden shadow-lg glass-card border-0">
+     <!-- Cover Banner -->
+     <div class="h-40 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+      <div class="absolute inset-0 bg-black/20"></div>
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
+     </div>
+     
+     <!-- Profile Info Overlay -->
+     <div class="px-8 pb-8 pt-8 bg-white/80 backdrop-blur-xl relative">
+      <!-- Name and Role -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+       <h2 class="text-4xl font-extrabold text-slate-800 tracking-tight mb-3 flex items-center gap-3">
+        <span id="profileName" class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">ชื่อผู้ใช้</span>
+       </h2>
+       <span id="profileRole" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-100 to-violet-100 text-indigo-700 text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm border border-indigo-200/50">
+        <i class="fas fa-shield-alt text-indigo-500"></i> บทบาท
+       </span>
+      </div>
+
+      <!-- Contact & Info Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-200/60">
+       <div class="flex items-center gap-4 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/50 transition-all hover:bg-white hover:shadow-md">
+        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+         <i class="fas fa-id-badge text-xl"></i>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1" id="profileName">ชื่อผู้ใช้</h3>
-        <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-4" id="profileRole">บทบาท</span>
-        <div class="mt-4 text-sm text-gray-600 space-y-1.5 border-t pt-4 text-left">
-         <p class="flex items-center gap-2"><i class="fas fa-id-card text-gray-400 w-5"></i> <span id="profileUserId">รหัสผู้ใช้: -</span></p>
-         <p class="flex items-center gap-2" id="profileEmailContainer"><i class="fas fa-envelope text-gray-400 w-5"></i> <span id="profileEmail">อีเมล: -</span></p>
+        <div>
+         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">ข้อมูลรหัสอ้างอิง</p>
+         <p id="profileUserId" class="font-bold text-slate-800 text-lg">-</p>
         </div>
        </div>
-      </div><!-- Change Password -->
-      <div class="md:col-span-2">
-       <div class="glass-card p-8">
-        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-         <i class="fas fa-key text-yellow-500"></i> เปลี่ยนรหัสผ่านความปลอดภัย
-        </h3>
-        <form id="changePasswordForm" class="space-y-4">
-         <div>
-          <label for="currentPassword" class="block text-gray-700 font-semibold mb-1 text-sm">รหัสผ่านปัจจุบัน</label>
-          <input type="password" id="currentPassword" name="currentPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required>
-         </div>
-         <div>
-          <label for="newPassword" class="block text-gray-700 font-semibold mb-1 text-sm">รหัสผ่านใหม่</label>
-          <input type="password" id="newPassword" name="newPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required minlength="6">
-          <p class="text-xs text-gray-400 mt-1">รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร</p>
-         </div>
-         <div>
-          <label for="confirmNewPassword" class="block text-gray-700 font-semibold mb-1 text-sm">ยืนยันรหัสผ่านใหม่</label>
-          <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition" required>
-         </div>
-         <div class="pt-2">
-          <button type="submit" class="btn-premium bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg transition shadow-md flex items-center gap-2">
-           <i class="fas fa-save"></i> บันทึกการเปลี่ยนแปลง
-          </button>
-         </div>
-        </form>
+       <div id="profileEmailContainer" class="flex items-center gap-4 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/50 transition-all hover:bg-white hover:shadow-md">
+        <div class="w-12 h-12 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+         <i class="fas fa-envelope-open-text text-xl"></i>
+        </div>
+        <div>
+         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">อีเมลที่ใช้ติดต่อ</p>
+         <p id="profileEmail" class="font-bold text-slate-800 text-lg">-</p>
+        </div>
        </div>
       </div>
+     </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="glass-card rounded-3xl p-8 relative overflow-hidden shadow-lg border-0 bg-white/90">
+     <!-- Decorative element -->
+     <div class="absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br from-rose-400 to-orange-400 rounded-full blur-3xl opacity-10"></div>
+     
+     <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-8">
+       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white flex items-center justify-center shadow-lg shadow-rose-200">
+        <i class="fas fa-key text-lg"></i>
+       </div>
+       <h3 class="text-2xl font-bold text-slate-800">เปลี่ยนรหัสผ่านความปลอดภัย</h3>
+      </div>
+      
+      <form id="changePasswordForm" class="max-w-2xl">
+       <div class="space-y-6">
+        <div class="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:border-indigo-300">
+         <label for="currentPassword" class="block text-slate-700 font-bold mb-2">รหัสผ่านปัจจุบัน</label>
+         <div class="relative">
+          <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="password" id="currentPassword" name="currentPassword" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-inner" placeholder="ป้อนรหัสผ่านปัจจุบันของคุณ" required>
+         </div>
+        </div>
+        
+        <div class="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all hover:border-indigo-300 space-y-5">
+         <div>
+          <label for="newPassword" class="block text-slate-700 font-bold mb-2">รหัสผ่านใหม่</label>
+          <div class="relative">
+           <i class="fas fa-shield-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+           <input type="password" id="newPassword" name="newPassword" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-inner" placeholder="ตั้งรหัสผ่านใหม่อย่างน้อย 6 ตัวอักษร" required minlength="6">
+          </div>
+         </div>
+         <div>
+          <label for="confirmNewPassword" class="block text-slate-700 font-bold mb-2">ยืนยันรหัสผ่านใหม่</label>
+          <div class="relative">
+           <i class="fas fa-check-double absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+           <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-inner" placeholder="ป้อนรหัสผ่านใหม่อีกครั้งให้ตรงกัน" required>
+          </div>
+         </div>
+        </div>
+        
+        <div class="pt-4 flex justify-end">
+         <button type="submit" class="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all transform hover:scale-[1.02] shadow-xl shadow-indigo-200 flex items-center gap-2 text-lg w-full md:w-auto justify-center">
+          <i class="fas fa-save"></i> บันทึกรหัสผ่านใหม่
+         </button>
+        </div>
+       </div>
+      </form>
+     </div>
     </div>
    </div>
   </main>
